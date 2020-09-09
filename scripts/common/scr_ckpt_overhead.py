@@ -1,4 +1,5 @@
 import sys
+import os
 import math
 import scrlog
 import argparse
@@ -9,6 +10,8 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--stats', help='print stats for checkpoint cost and failure rate', action='store_true')
 parser.add_argument('--model', help='model to compute optimum checkpoint interval', type=str, choices=['young','daly'], default='daly')
+parser.add_argument('--prefix', help='prefix directory to look for log file', type=str)
+parser.add_argument('--logfile', help='path to log file', type=str)
 args = parser.parse_args(sys.argv[1:])
 
 # count up number of times job has started
@@ -48,7 +51,11 @@ flush_output_count = 0.0
 state = None
 
 # parse log file and get list of entries
-filename = 'log'
+filename = os.path.join('.scr', 'log')
+if args.prefix:
+  filename = os.path.join(args.prefix, filename)
+if args.logfile:
+  filename = args.logfile
 entries = scrlog.parse_file(filename)
 
 # run over entries and add up time and number of times we executed different phases
@@ -164,7 +171,7 @@ if num_starts > 0.0:
 if args.stats:
   print "Total time (s): " + str(total_time), ", MTTI=" + str(avg_time_before_failure)
 
-if args.formula == 'young':
+if args.model == 'young':
   # "A First Order Approximation to the Optimum Checkpoint Interval",
   # John Young, 1976.
   opt_checkpoint_time = math.sqrt(2.0 * checkpoint_cost * avg_time_before_failure)
@@ -174,7 +181,7 @@ if args.formula == 'young':
   else:
     print str(opt_checkpoint_overhead)
   
-if args.formula == 'daly':
+if args.model == 'daly':
   # "A Higher Order Estimate of the Optimum Checkpoint Interval for Restart Dumps",
   # John Daly, 2004
   # See equation 37 from above paper
