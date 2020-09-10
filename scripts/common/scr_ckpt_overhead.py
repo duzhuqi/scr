@@ -56,7 +56,13 @@ if args.prefix:
   filename = os.path.join(args.prefix, filename)
 if args.logfile:
   filename = args.logfile
-entries = scrlog.parse_file(filename)
+try:
+  entries = scrlog.parse_file(filename)
+except:
+  print "ERROR: failed to parse log file:", filename
+  print "Run this command from within the prefix directory of the job,"
+  print "specify the prefix directory with --prefix, or provide the path to the log file with --logfile"
+  quit()
 
 # run over entries and add up time and number of times we executed different phases
 for e in entries:
